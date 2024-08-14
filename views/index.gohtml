@@ -1,0 +1,44 @@
+{{ block "index" . }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Go + HTMX</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+</head>
+<body>
+    <h1>JSON Data</h1>
+    <form hx-post="/get-library" hx-target="#data-id">
+        <label>
+            <input type="text" name="library-name" placeholder="express"/>
+        </label>
+        <button type="submit">Get from NPM</button>
+    </form>
+    {{ template "data-template" . }}
+</body>
+</html>
+{{ end }}
+
+{{ block "data-template" . }}
+    <div id="data-id">
+        <h3>Dependencies:</h3>
+        <ul>
+        {{ range . }}
+            <li>
+                <div><b>{{ .Name }}</b>, {{ .Version }}</div>
+                {{ template "dependency-template" .ResolvedDependencies }}
+            </li>
+        {{ end }}
+        </ul>
+    </div>
+{{ end }}
+
+{{ block "dependency-template" . }}
+    <ul>
+    {{ range . }}
+        <li><b>{{ .Name }}</b>,{{ .Version }}</li>
+       {{ template "dependency-template" .ResolvedDependencies }}
+    {{ end }}
+    </ul>
+{{ end }}

@@ -32,15 +32,8 @@ type PackageInfo struct {
 
 func (pi *PackageInfo) PrintResults(ident int, filter string) {
 	for dep, info := range pi.ResolvedDependencies {
-		if filter != "" {
-			if filter == dep {
-				fmt.Printf("%s%s -> %s\n", strings.Repeat("   ", ident), dep, info.Version)
-				info.PrintResults(ident+1, filter)
-			}
-		} else {
-			//fmt.Printf("%s%s -> %s\n", strings.Repeat("   ", ident), dep, info.Version)
-			//info.PrintResults(ident+1, "")
-		}
+		fmt.Printf("%s%s -> %s\n", strings.Repeat("   ", ident), dep, info.Version)
+		info.PrintResults(ident+1, filter)
 	}
 }
 

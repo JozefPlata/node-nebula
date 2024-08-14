@@ -27,51 +27,8 @@ func fetchPackageInfo(packageName, version string, verbose bool) (PackageInfo, e
 		return PackageInfo{}, err
 	}
 
-	//url := fmt.Sprintf("%s/%s", npmRegistry, packageName)
-	//resp, err := http.Get(url)
-	//if err != nil {
-	//	return PackageInfo{}, err
-	//}
-	//defer resp.Body.Close()
-	//
-	//if resp.StatusCode != http.StatusOK {
-	//	return PackageInfo{}, errors.New(resp.Status)
-	//}
-	//
-	//body, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	return PackageInfo{}, err
-	//}
-	//
-	//var pkg *Package
-	//if err = json.Unmarshal(body, &pkg); err != nil {
-	//	return PackageInfo{}, err
-	//}
-	//
-	//if version == "latest" {
-	//	version = pkg.DistTags["latest"]
-	//}
-
-	//pkgVersion := pkg.Versions[version]
-	//info.dependencies()
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-
-	//for dep, v := range pkgVersion.Dependencies {
-	//	wg.Add(1)
-	//	go func() {
-	//		defer wg.Done()
-	//		fetchResolvedInfo()
-	//		ver, e := resolveVersion(v)
-	//		if e != nil {
-	//			pkgVersion.Dependencies[dep] = e.Error()
-	//		} else {
-	//			pkgVersion.Dependencies[dep] = ver
-	//		}
-	//	}()
-	//}
-	//wg.Wait()
-
 	info.ResolvedDependencies = make(map[string]PackageInfo)
 	visited := make(map[string]bool)
 
@@ -133,28 +90,6 @@ func resolveDependencies(name string, version string, verbose bool, identLevel i
 		return PackageInfo{}, err
 	}
 
-	//url := fmt.Sprintf("%s/%s/%s", npmRegistry, name, version)
-	//resp, err := http.Get(url)
-	//if err != nil {
-	//	return PackageInfo{}, err
-	//}
-	//defer resp.Body.Close()
-	//
-	//if resp.StatusCode != http.StatusOK {
-	//	return PackageInfo{}, errors.New(resp.Status)
-	//}
-	//
-	//body, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	return PackageInfo{}, err
-	//}
-	//
-	//var info *PackageInfo
-	//if err = json.Unmarshal(body, &info); err != nil {
-	//	return PackageInfo{}, err
-	//}
-
-	//info.dependencies()
 	info.ResolvedDependencies = make(map[string]PackageInfo)
 	var wg sync.WaitGroup
 

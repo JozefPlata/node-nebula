@@ -2,20 +2,56 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"github.com/JozefPlata/node-nebula/pkg/npm"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"html/template"
+	"io"
 	"net/http"
 )
 
-func main() {
-	http.HandleFunc("GET /", handler)
-	fmt.Println("Listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+type Templates struct {
+	templates *template.Template
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
-	_, err := fmt.Fprintf(w, "Hello, World!")
-	if err != nil {
-		return
+func (t Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func newTemplate() *Templates {
+	return &Templates{
+		templates: template.Must(template.ParseGlob("views/*.gohtml")),
 	}
+}
+
+func main() {
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Renderer = newTemplate()
+
+	e.GET("/", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "index", nil)
+	})
+
+	e.POST("/get-library", func(c echo.Context) error {
+		lib := c.FormValue("library-name")
+		info, err := npm.GetPackageInfo(lib, "latest", false)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println(info.Name, info.Version, len(info.ResolvedDependencies))
+
+		//jsonData, _ := os.ReadFile("express.json")
+		//var data interface{}
+		//if err = json.Unmarshal(jsonData, &data); err != nil {
+		//	fmt.Println(err)
+		//	return nil
+		//}
+
+		return c.Render(http.StatusOK, "data-template", info.ResolvedDependencies)
+	})
+
+	e.Logger.Fatal(e.Start(":8080"))
 }
