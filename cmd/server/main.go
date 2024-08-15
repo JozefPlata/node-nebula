@@ -35,7 +35,7 @@ func main() {
 
 	e.POST("/get-library", func(c echo.Context) error {
 		lib := c.FormValue("library-name")
-		info, err := npm.GetPackageInfo(lib, "latest", false)
+		info, err := npm.GetPackageInfo(lib, "latest")
 		if err != nil {
 			fmt.Println(err)
 			return err

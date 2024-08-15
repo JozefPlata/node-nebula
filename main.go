@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
+	"sort"
 )
 
 //type PackageInfo struct {
@@ -25,46 +24,55 @@ import (
 //	Dependencies map[string]string `json:"dependencies"`
 //}
 
-func fetchPackageInfo(packageName string) (npm.PackageInfo, error) {
+func fetchPackageInfo(packageName string) (npm.Package, error) {
 	url := fmt.Sprintf("https://registry.npmjs.org/%s", packageName)
 	resp, err := http.Get(url)
 	if err != nil {
-		return npm.PackageInfo{}, err
+		return npm.Package{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return npm.PackageInfo{}, errors.New(resp.Status)
+		return npm.Package{}, errors.New(resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return npm.PackageInfo{}, err
+		return npm.Package{}, err
 	}
 
 	////fmt.Println(string(body))
-	var prettyJSON bytes.Buffer
-	if err := json.Indent(&prettyJSON, body, "", "  "); err != nil {
-		return npm.PackageInfo{}, err
-	}
+	//var prettyJSON bytes.Buffer
+	//if err := json.Indent(&prettyJSON, body, "", "  "); err != nil {
+	//	return npm.PackageInfo{}, err
+	//}
 
-	_ = os.WriteFile(fmt.Sprintf("%s.json", packageName), prettyJSON.Bytes(), 0644)
+	//_ = os.WriteFile("vue_shared.json", prettyJSON.Bytes(), 0644)
 
-	var pkgInfo *npm.PackageInfo
+	var pkgInfo *npm.Package
 	if err = json.Unmarshal(body, &pkgInfo); err != nil {
-		return npm.PackageInfo{}, err
+		return npm.Package{}, err
 	}
 
 	return *pkgInfo, nil
 }
 
 func main() {
-	info, err := fetchPackageInfo("next")
+	info, err := fetchPackageInfo("@vue/shared")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(info.Name)
+	var pkgVersions []npm.PackageVersion
+	for _, v := range info.Versions {
+		parsed, _ := npm.ParseVersion(v.Version)
+		pkgVersions = append(pkgVersions, parsed)
+	}
+	sort.Sort(npm.ByVersion(pkgVersions))
+
+	for _, ver := range pkgVersions {
+		fmt.Println(ver)
+	}
 	////fmt.Println(info.Version)
 	//for k, v := range info.Versions {
 	//	fmt.Println(k, "\t:", len(v.Dependencies))

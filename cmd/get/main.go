@@ -24,11 +24,6 @@ func main() {
 				Value: "",
 				Usage: "Version of the library, overrides 'latest'",
 			},
-			&cli.BoolFlag{
-				Name:  "verbose",
-				Value: false,
-				Usage: "Verbose output",
-			},
 			&cli.StringFlag{
 				Name:  "save",
 				Value: "",
@@ -46,7 +41,6 @@ func main() {
 				return fmt.Errorf("lib flag is required")
 			}
 			version := c.String("ver")
-			verbose := c.Bool("verbose")
 			save := c.String("save")
 			filter := c.String("filter")
 
@@ -61,7 +55,7 @@ func main() {
 			//save := c.String("save")
 
 			start := time.Now()
-			info, err := npm.GetPackageInfo(lib, version, verbose)
+			info, err := npm.GetPackageInfo(lib, version)
 			if err != nil {
 				return err
 			}
