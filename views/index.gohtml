@@ -6,16 +6,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+    <style>
+        #canvasContainer {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
 </head>
 <body>
     <h1>JSON Data</h1>
-    <form hx-post="/get-library" hx-target="#data-id">
+    <form id="formId" hx-post="/get-library" hx-swap="none">
         <label>
             <input type="text" name="library-name" placeholder="express"/>
         </label>
-        <button type="submit">Get from NPM</button>
+        <button id="buttonId" type="submit">Get from NPM</button>
     </form>
-    {{ template "data-template" . }}
+    {{ template "canvas-block" . }}
 </body>
 </html>
 {{ end }}
@@ -41,4 +56,11 @@
        {{ template "dependency-template" .ResolvedDependencies }}
     {{ end }}
     </ul>
+{{ end }}
+
+{{ block "canvas-block" . }}
+    <div id="canvasContainer">
+        <canvas id="renderCanvas"></canvas>
+        <script src="/bjs/babylon.js"></script>
+    </div>
 {{ end }}

@@ -30,6 +30,26 @@ type PackageInfo struct {
 	ResolvedDependencies map[string]PackageInfo
 }
 
+type ResolvedPackage struct {
+	Name                 string                     `json:"name"`
+	Version              string                     `json:"version"`
+	ResolvedDependencies map[string]ResolvedPackage `json:"resolvedDependencies"`
+}
+
+func (pi *PackageInfo) ToResolvedPackage() ResolvedPackage {
+	resolved := ResolvedPackage{
+		Name:                 pi.Name,
+		Version:              pi.Version,
+		ResolvedDependencies: make(map[string]ResolvedPackage),
+	}
+
+	for name, pkg := range pi.ResolvedDependencies {
+		resolved.ResolvedDependencies[name] = pkg.ToResolvedPackage()
+	}
+
+	return resolved
+}
+
 func (pi *PackageInfo) PrintResults(ident int, filter string) {
 	for dep, info := range pi.ResolvedDependencies {
 		fmt.Printf("%s%s -> %s\n", strings.Repeat("   ", ident), dep, info.Version)

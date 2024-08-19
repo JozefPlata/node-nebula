@@ -27,6 +27,7 @@ func newTemplate() *Templates {
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
+	e.Static("/bjs", "bjs")
 	e.Renderer = newTemplate()
 
 	e.GET("/", func(c echo.Context) error {
@@ -41,16 +42,9 @@ func main() {
 			return err
 		}
 
-		fmt.Println(info.Name, info.Version, len(info.ResolvedDependencies))
+		resolved := info.ToResolvedPackage()
 
-		//jsonData, _ := os.ReadFile("express.json")
-		//var data interface{}
-		//if err = json.Unmarshal(jsonData, &data); err != nil {
-		//	fmt.Println(err)
-		//	return nil
-		//}
-
-		return c.Render(http.StatusOK, "data-template", info.ResolvedDependencies)
+		return c.JSON(http.StatusOK, resolved)
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))
