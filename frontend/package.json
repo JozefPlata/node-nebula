@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "rm -r ./../bjs && tsc && vite build && mkdir ./../bjs && mv dist/assets/* ./../bjs/babylon.js && cd .. && go run ./cmd/server",
+    "build": "rm -rf ./../bjs && tsc && vite build && mkdir ./../bjs && mv dist/assets/* ./../bjs/babylon.js && cd .. && go run ./cmd/server",
     "preview": "vite preview"
   },
   "devDependencies": {

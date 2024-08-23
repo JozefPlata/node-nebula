@@ -55,7 +55,16 @@ func main() {
 			//save := c.String("save")
 
 			start := time.Now()
-			info, err := npm.GetPackageInfo(lib, version)
+			progress := make(chan string)
+
+			go func() {
+				for msg := range progress {
+					//fmt.Println(msg)
+					_ = msg
+				}
+			}()
+
+			info, err := npm.GetPackageInfo(lib, version, progress)
 			if err != nil {
 				return err
 			}

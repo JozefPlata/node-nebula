@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+{{/*    <script src="https://unpkg.com/htmx-ext-ws@2.0.1/ws.js"></script>*/}}
     <style>
         #canvasContainer {
             overflow: hidden;
@@ -30,9 +31,18 @@
         </label>
         <button id="buttonId" type="submit">Get from NPM</button>
     </form>
+{{/*    {{ template "progress-template" . }}*/}}
     {{ template "canvas-block" . }}
 </body>
 </html>
+{{ end }}
+
+{{ block "progress-template" . }}
+    <div>
+    {{ range .}}
+        <p>{{ . }}</p>
+    {{ end }}
+    </div>
 {{ end }}
 
 {{ block "data-template" . }}

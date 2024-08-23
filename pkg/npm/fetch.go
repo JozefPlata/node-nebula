@@ -9,8 +9,8 @@ import (
 	"sync"
 )
 
-func GetPackageInfo(packageName, version string) (PackageInfo, error) {
-	info, err := fetchPackageInfo(packageName, version)
+func GetPackageInfo(packageName, version string, progress chan<- string) (PackageInfo, error) {
+	info, err := fetchPackageInfo(packageName, version, progress)
 	if err != nil {
 		return PackageInfo{}, err
 	}
@@ -18,7 +18,7 @@ func GetPackageInfo(packageName, version string) (PackageInfo, error) {
 	return info, nil
 }
 
-func fetchPackageInfo(packageName, version string) (PackageInfo, error) {
+func fetchPackageInfo(packageName, version string, progress chan<- string) (PackageInfo, error) {
 	info, err := fetchResolvedInfo(packageName, version)
 	if err != nil {
 		return PackageInfo{}, err
@@ -35,12 +35,13 @@ func fetchPackageInfo(packageName, version string) (PackageInfo, error) {
 			defer wg.Done()
 			res, err := resolveDependencies(dep, ver, depPath, &mu)
 			if err != nil {
-				fmt.Printf("Error resolving dependency package %s %s: %s\n", dep, ver, err)
+				progress <- fmt.Sprintf("Error resolving dependency package %s %s: %s\n", dep, ver, err)
 				return
 			}
 			mu.Lock()
 			info.ResolvedDependencies[dep] = res
 			mu.Unlock()
+			progress <- fmt.Sprintf("Resolved dependency package %s %s\n", dep, ver)
 		}(dep, ver)
 	}
 
