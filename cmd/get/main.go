@@ -34,6 +34,11 @@ func main() {
 				Value: "",
 				Usage: "Filter by dependency library name",
 			},
+			&cli.BoolFlag{
+				Name:  "print",
+				Value: false,
+				Usage: "Prints out the structured content",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			lib := c.String("lib")
@@ -43,6 +48,7 @@ func main() {
 			version := c.String("ver")
 			save := c.String("save")
 			filter := c.String("filter")
+			prt := c.Bool("print")
 
 			if lib == "" {
 				return nil
@@ -55,21 +61,29 @@ func main() {
 			//save := c.String("save")
 
 			start := time.Now()
-			progress := make(chan string)
+			//progress := make(chan string)
+
+			progress := &npm.ProgressChannel{
+				Channel: make(chan string),
+				Done:    make(chan bool),
+			}
+			//deps := make(chan []string)
 
 			go func() {
-				for msg := range progress {
-					//fmt.Println(msg)
-					_ = msg
+				for msg := range progress.Channel {
+					fmt.Println(msg)
 				}
 			}()
 
-			info, err := npm.GetPackageInfo(lib, version, progress)
+			info, err := npm.GetPackageInfo(lib, version, progress.Channel)
 			if err != nil {
 				return err
 			}
+
 			elapsed := time.Since(start)
-			info.PrintResults(0, filter)
+			if prt {
+				info.PrintResults(0, filter)
+			}
 			if save != "" {
 				err := info.SaveAsJson(save)
 				if err != nil {

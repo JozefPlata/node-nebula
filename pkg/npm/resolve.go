@@ -38,7 +38,7 @@ func resolveDependencies(targetLib string, libVer string, path []string, mu *syn
 
 			res, err := resolveDependencies(dep, ver, path, mu)
 			if err != nil {
-				fmt.Printf("Error resolving dependency package %s %s: %s\n", dep, ver, err)
+				//fmt.Printf("Error resolving dependency package %s %s: %s\n", dep, ver, err)
 				return
 			}
 

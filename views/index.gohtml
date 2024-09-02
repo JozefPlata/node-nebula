@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/htmx.org@2.0.2"></script>
-{{/*    <script src="https://unpkg.com/htmx-ext-ws@2.0.1/ws.js"></script>*/}}
     <style>
         #canvasContainer {
             overflow: hidden;
@@ -25,47 +24,22 @@
 </head>
 <body>
     <h1>JSON Data</h1>
-    <form id="formId" hx-post="/get-library" hx-swap="none">
+    <form id="formId" hx-post="/get-lib/{sesId}" hx-swap="none" hx-ext="session-id">
         <label>
-            <input type="text" name="library-name" placeholder="express"/>
+            <input type="text" name="lib-name" placeholder="express"/>
         </label>
         <button id="buttonId" type="submit">Get from NPM</button>
     </form>
-{{/*    {{ template "progress-template" . }}*/}}
+    {{ template "progress-template" . }}
     {{ template "canvas-block" . }}
 </body>
 </html>
 {{ end }}
 
 {{ block "progress-template" . }}
-    <div>
-    {{ range .}}
-        <p>{{ . }}</p>
-    {{ end }}
+    <div id="progressContainer">
+        <ul id="progressList"></ul>
     </div>
-{{ end }}
-
-{{ block "data-template" . }}
-    <div id="data-id">
-        <h3>Dependencies:</h3>
-        <ul>
-        {{ range . }}
-            <li>
-                <div><b>{{ .Name }}</b>, {{ .Version }}</div>
-                {{ template "dependency-template" .ResolvedDependencies }}
-            </li>
-        {{ end }}
-        </ul>
-    </div>
-{{ end }}
-
-{{ block "dependency-template" . }}
-    <ul>
-    {{ range . }}
-        <li><b>{{ .Name }}</b>,{{ .Version }}</li>
-       {{ template "dependency-template" .ResolvedDependencies }}
-    {{ end }}
-    </ul>
 {{ end }}
 
 {{ block "canvas-block" . }}

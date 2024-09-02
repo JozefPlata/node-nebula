@@ -36,6 +36,11 @@ type ResolvedPackage struct {
 	ResolvedDependencies map[string]ResolvedPackage `json:"resolvedDependencies"`
 }
 
+type ProgressChannel struct {
+	Channel chan string
+	Done    chan bool
+}
+
 func (pi *PackageInfo) ToResolvedPackage() ResolvedPackage {
 	resolved := ResolvedPackage{
 		Name:                 pi.Name,

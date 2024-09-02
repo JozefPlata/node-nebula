@@ -1,12 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"github.com/JozefPlata/node-nebula/pkg/npm"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"html/template"
 	"io"
 	"net/http"
+	"sync"
+	"time"
 )
 
 type Templates struct {
@@ -28,58 +32,113 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Static("/bjs", "bjs")
 	e.Renderer = newTemplate()
-	progress := make(chan string)
-	//var upgrader = websocket.Upgrader{}
-
-	e.GET("/", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "index", nil)
-	})
+	progressChannels := make(map[string]*npm.ProgressChannel)
+	var mu sync.Mutex
 
 	go func() {
-		for msg := range progress {
-			_ = msg
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			mu.Lock()
+			for sesId, progress := range progressChannels {
+				select {
+				case <-progress.Done:
+					close(progress.Channel)
+					delete(progressChannels, sesId)
+				default:
+					// Session still active
+				}
+			}
+			mu.Unlock()
 		}
 	}()
 
-	e.POST("/get-library", func(c echo.Context) error {
-		lib := c.FormValue("library-name")
+	//
+	e.GET("/", func(c echo.Context) error {
+		sesId := uuid.New().String()
 
-		info, _ := npm.GetPackageInfo(lib, "latest", progress)
+		mu.Lock()
+		progressChannels[sesId] = &npm.ProgressChannel{
+			Channel: make(chan string),
+			Done:    make(chan bool),
+		}
+		mu.Unlock()
+
+		url := fmt.Sprintf("/%s", sesId)
+		c.Response().Header().Add("HX-Redirect", url)
+		_ = c.Redirect(http.StatusFound, url)
+
+		return nil
+	})
+
+	//
+	e.GET("/:sesId", func(c echo.Context) error {
+		sesId := c.Param("sesId")
+
+		mu.Lock()
+		_, ok := progressChannels[sesId]
+		mu.Unlock()
+
+		if !ok {
+			c.Response().Header().Add("HX-Redirect", "/")
+			_ = c.Redirect(http.StatusTemporaryRedirect, "/")
+			return nil
+		}
+
+		return c.Render(http.StatusOK, "index", nil)
+	})
+
+	// HTMX endpoint
+	e.POST("/get-lib/:sesId", func(c echo.Context) error {
+		lib := c.FormValue("lib-name")
+		sesId := c.Param("sesId")
+
+		mu.Lock()
+		progress, ok := progressChannels[sesId]
+		mu.Unlock()
+
+		if !ok {
+			return c.String(http.StatusNotFound, "Session not found")
+		}
+
+		go func() {
+			for msg := range progress.Channel {
+				_ = msg
+			}
+		}()
+
+		info, err := npm.GetPackageInfo(lib, "latest", progress.Channel)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Error processing request")
+		}
 
 		resolved := info.ToResolvedPackage()
-
 		return c.JSON(http.StatusOK, resolved)
 	})
 
-	//e.GET("/ws/progress", func(c echo.Context) error {
-	//	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	defer ws.Close()
-	//
-	//	progress := make(chan string)
-	//
-	//	go func() {
-	//		for msg := range progress {
-	//			if err := ws.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
-	//				return
-	//			}
-	//		}
-	//	}()
-	//
-	//	lib := c.FormValue("library-name")
-	//	if lib == "" {
-	//		return errors.New("no library name")
-	//	}
-	//	info, _ := npm.GetPackageInfo(lib, "latest", progress)
-	//	close(progress)
-	//
-	//	resolved := info.ToResolvedPackage()
-	//	data, _ := json.Marshal(resolved)
-	//	ws.WriteMessage(websocket.TextMessage, data)
-	//	return nil
-	//})
+	// SSE endpoint
+	e.GET("/progress/:sesId", func(c echo.Context) error {
+		sesId := c.Param("sesId")
 
+		mu.Lock()
+		progressChannel, exists := progressChannels[sesId]
+		mu.Unlock()
+
+		if !exists {
+			return c.String(http.StatusNotFound, "Session not found")
+		}
+
+		c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
+		c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
+		c.Response().Header().Set(echo.HeaderConnection, "keep-alive")
+
+		for msg := range progressChannel.Channel {
+			_, _ = fmt.Fprintf(c.Response(), "data: %s\n\n", msg)
+			c.Response().Flush()
+		}
+		return nil
+	})
+
+	//
 	e.Logger.Fatal(e.Start(":8080"))
 }
