@@ -1,0 +1,205 @@
+
+{{ block "styles-block" . }}
+    <style>
+        :root {
+            --text-color: #e3ddd4;
+            --background-color: rgb(103 102 109 / 45%);
+            --focus-color: #a9d5ff;
+            --hover-color: #78abd6;
+            --border-color: #9e9e9e;
+            --resolved-color: #5da61a;
+        }
+
+        body {
+            margin: 0;
+            font-size: 16px;
+            overflow: hidden;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .ubuntu-medium {
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        h1 {
+            color: var(--text-color);
+        }
+
+        /*#menu {*/
+        /*    background-color: var(--background-color);*/
+        /*    position: absolute;*/
+        /*    top: 0;*/
+        /*    right: 0;*/
+        /*    bottom: 0;*/
+        /*    width: 100%;*/
+        /*    padding: 8px;*/
+        /*    max-width: 480px;*/
+        /*    box-sizing: border-box;*/
+        /*    overflow-y: auto;*/
+        /*    display: flex;*/
+        /*    flex-direction: column;*/
+        /*}*/
+
+        #menu-container {
+            background-color: var(--background-color);
+            position: fixed;
+            width: 100%;
+            padding: 8px;
+            max-width: 480px;
+            margin: 8px 6px;
+        }
+
+        #lib-name-input {
+            width: 100%;
+            max-width: 220px;
+            padding: 2px 4px;
+            border: none;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 16px;
+            transition: border-bottom-color 0.3s;
+            background-color: transparent;
+            color: var(--text-color);
+        }
+
+        #lib-name-input:focus {
+            outline: none;
+            border-bottom-color: var(--focus-color);
+            background-color: transparent;
+        }
+
+        #lib-name-input::placeholder {
+            color: var(--border-color);
+            transition: color 0.3s;
+        }
+
+        #lib-name-input:focus::placeholder {
+            color: var(--focus-color);
+        }
+
+        #lib-name-input:disabled {
+            color: var(--border-color);
+            cursor: not-allowed;
+        }
+
+        /* Submit Button */
+        #submit-button {
+            padding: 3px 16px;
+            font-size: 16px;
+            color: var(--text-color);
+            background-color: transparent;
+            border: 2px solid var(--text-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        #submit-button:hover {
+            background-color: var(--hover-color);
+        }
+
+        #submit-button:active {
+            background-color: var(--focus-color);
+        }
+
+        #submit-button:focus {
+            box-shadow: 0 0 0 2px var(--focus-color);
+        }
+
+        #submit-button:disabled {
+            color: var(--border-color);
+            border-color: var(--border-color);
+            cursor: not-allowed;
+        }
+
+
+        /* Cached List */
+        #cached-list-container {
+            flex-grow: 1;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        #cached-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #cached-list li {
+            margin-bottom: 5px;
+            display: flex;
+        }
+
+        #cached-list div, select {
+            width: 45%;
+            text-align: left;
+            padding: 2px;
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 1px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #cached-list button {
+            width: 10%;
+            padding: 2px;
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 1px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #cached-list button:hover, select:hover {
+            background-color: var(--border-color);
+        }
+
+        #cached-list button:active, select:hover {
+            background-color: var(--border-color);
+            color: white;
+        }
+
+        #deps-list {
+            margin: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .dep {
+            border-style: solid;
+            border-width: 1px;
+            border-radius: 12px;
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+
+        .dep-resolved {
+            background-color: var(--resolved-color);
+        }
+
+        #babylon-container {
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        #babylon-canvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+{{ end }}

@@ -2,7 +2,7 @@ import {
     ArcRotateCamera,
     Color4,
     Engine,
-    KeyboardEventTypes,
+    KeyboardEventTypes, MeshBuilder,
     PointLight,
     Scene,
     Vector3,
@@ -12,18 +12,28 @@ import {AdvancedDynamicTexture} from "@babylonjs/gui";
 import {CelestialBodyType, ResolvedPackage} from "./types.ts";
 import {PlanetarySystem} from "./planetarySystem.ts";
 import {CelestialBody} from "./celestialBody.ts";
+import {GridMaterial} from "@babylonjs/materials";
 
 export class BabylonApp {
     private readonly _canvas: HTMLCanvasElement
+    // private readonly _name = "babylon-container"
 
-    constructor(canvasName: string) {
-        this._canvas = <HTMLCanvasElement> document.getElementById(canvasName)
+    constructor(canvas: HTMLCanvasElement) {
+        this._canvas = canvas
         AppManager.Instance.engine = new Engine(this._canvas, true)
         AppManager.Instance.scene = this._createScene()
         AppManager.Instance.camera = this._createCamera(AppManager.Instance.scene)
         AppManager.Instance.uiTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI")
         this._setupInputs()
+        this._loadingSceneSetup()
         this._render()
+    }
+
+    private _loadingSceneSetup() {
+        const grid = new GridMaterial("grid", AppManager.Instance.scene)
+        const box = MeshBuilder.CreateBox("box", { size: 1 }, AppManager.Instance.scene)
+        box.scaling = new Vector3(20, 20, 20)
+        box.material = grid
     }
 
     private _createScene(): Scene {

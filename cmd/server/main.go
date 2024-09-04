@@ -27,6 +27,10 @@ func newTemplate() *Templates {
 	}
 }
 
+type App struct {
+	Version string
+}
+
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -43,7 +47,7 @@ func main() {
 			for sesId, progress := range progressChannels {
 				select {
 				case <-progress.Done:
-					close(progress.Channel)
+					close(progress.Package)
 					delete(progressChannels, sesId)
 				default:
 					// Session still active
@@ -59,7 +63,7 @@ func main() {
 
 		mu.Lock()
 		progressChannels[sesId] = &npm.ProgressChannel{
-			Channel: make(chan string),
+			Package: make(chan string),
 			Done:    make(chan bool),
 		}
 		mu.Unlock()
@@ -85,7 +89,8 @@ func main() {
 			return nil
 		}
 
-		return c.Render(http.StatusOK, "index", nil)
+		app := App{Version: "0.0.1"}
+		return c.Render(http.StatusOK, "index", app)
 	})
 
 	// HTMX endpoint
@@ -102,12 +107,12 @@ func main() {
 		}
 
 		go func() {
-			for msg := range progress.Channel {
-				_ = msg
+			for done := range progress.Done {
+				_ = done
 			}
 		}()
 
-		info, err := npm.GetPackageInfo(lib, "latest", progress.Channel)
+		info, err := npm.GetPackageInfo(lib, "latest", *progress)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Error processing request")
 		}
@@ -121,7 +126,7 @@ func main() {
 		sesId := c.Param("sesId")
 
 		mu.Lock()
-		progressChannel, exists := progressChannels[sesId]
+		progress, exists := progressChannels[sesId]
 		mu.Unlock()
 
 		if !exists {
@@ -132,10 +137,14 @@ func main() {
 		c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
 		c.Response().Header().Set(echo.HeaderConnection, "keep-alive")
 
-		for msg := range progressChannel.Channel {
+		for msg := range progress.Package {
 			_, _ = fmt.Fprintf(c.Response(), "data: %s\n\n", msg)
 			c.Response().Flush()
 		}
+
+		close(progress.Done)
+		close(progress.Package)
+
 		return nil
 	})
 

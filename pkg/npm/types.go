@@ -37,8 +37,13 @@ type ResolvedPackage struct {
 }
 
 type ProgressChannel struct {
-	Channel chan string
+	Package chan string
 	Done    chan bool
+}
+
+type Channel struct {
+	Package string
+	Done    bool
 }
 
 func (pi *PackageInfo) ToResolvedPackage() ResolvedPackage {

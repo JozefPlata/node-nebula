@@ -61,21 +61,24 @@ func main() {
 			//save := c.String("save")
 
 			start := time.Now()
-			//progress := make(chan string)
 
 			progress := &npm.ProgressChannel{
-				Channel: make(chan string),
+				Package: make(chan string),
 				Done:    make(chan bool),
 			}
-			//deps := make(chan []string)
 
 			go func() {
-				for msg := range progress.Channel {
+				for msg := range progress.Package {
 					fmt.Println(msg)
 				}
 			}()
+			go func() {
+				for done := range progress.Done {
+					_ = done
+				}
+			}()
 
-			info, err := npm.GetPackageInfo(lib, version, progress.Channel)
+			info, err := npm.GetPackageInfo(lib, version, *progress)
 			if err != nil {
 				return err
 			}

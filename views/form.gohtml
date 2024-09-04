@@ -1,0 +1,10 @@
+
+{{ block "form-template" . }}
+    <form id="formId" hx-post="/get-lib/{sesId}" hx-swap="none" hx-ext="session-id-extension">
+        <label>
+            <input id="lib-name-input" list="libNameList" autocomplete="off" type="text" name="lib-name" placeholder="your npm library"/>
+            <datalist id="libNameList" class="custom-dropdown"></datalist>
+        </label>
+        <button id="submit-button" type="submit">Get from NPM</button>
+    </form>
+{{ end }}
