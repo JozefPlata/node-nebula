@@ -95,7 +95,6 @@ func main() {
 
 	// HTMX endpoint
 	e.POST("/get-lib/:sesId", func(c echo.Context) error {
-		lib := c.FormValue("lib-name")
 		sesId := c.Param("sesId")
 
 		mu.Lock()
@@ -112,6 +111,7 @@ func main() {
 			}
 		}()
 
+		lib := c.FormValue("lib-name")
 		info, err := npm.GetPackageInfo(lib, "latest", *progress)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Error processing request")

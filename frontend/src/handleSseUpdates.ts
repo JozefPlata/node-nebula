@@ -1,34 +1,55 @@
 import {sessionIdFromUrl} from "./handleSessionId.ts"
+import {idFromLibNameForDep} from "./naming.ts"
+import {AppManager} from "./babylon/appManager.ts"
+
 
 export function handleSseUpdates() {
     const sesId = sessionIdFromUrl()
     const eventSource = new EventSource(`/progress/${sesId}`)
-    const depsList = document.getElementById("deps-list")
+    const depsList = <HTMLDivElement> document.getElementById("deps-list")
 
-    const items: HTMLDivElement[] = [];
+    // const items: HTMLDivElement[] = [];
     eventSource.onmessage = (event) => {
         const input = <HTMLInputElement> document.getElementById("lib-name-input")
-        const name = `${input.value}-${event.data.split(" ")[1]}`
-        let libName = items.find((item) => item.id === name)
+        const progress = <HTMLDivElement> document.getElementById("progress-bar")
+        const respName = event.data.split(" ")[1]
+        const id = idFromLibNameForDep(input.value, respName)
+        let dep = <HTMLButtonElement> AppManager.Instance.depsDivList.find((item) => item.id === id)
 
-        if (!libName) {
-            libName = document.createElement("div")
-            libName.id = name
-            libName.textContent = name
-            libName.classList.add("dep")
-            items.push(libName)
+        if (!dep) {
+            // Create new
+            AppManager.Instance.depsProgress.max += 1
+            dep = document.createElement("button")
+            dep.id = id
+            dep.textContent = "□ " + respName
+            dep.addEventListener("click", () => handleActiveDependency(dep, depsList))
+            dep.classList.add("dep")
+            dep.disabled = true
+            AppManager.Instance.depsDivList.push(dep)
         } else {
-            libName.classList.add("dep-resolved")
+            // Resolve
+            dep.textContent = "■ " + respName
+            AppManager.Instance.depsProgress.value += 1
+            progress.style.width = `${Math.min(1, Math.max(0, AppManager.Instance.depsProgress.value / (AppManager.Instance.depsProgress.max - 1))) * 100}%`
+            dep.classList.add("dep-resolved")
         }
 
-        items.sort((a, b) => a.id.localeCompare(b.id))
+        AppManager.Instance.depsDivList.sort((a, b) => a.id.localeCompare(b.id))
         if (depsList) {
-            depsList.innerHTML = ""
-            items.forEach((item) => depsList.appendChild(item))
+            AppManager.Instance.depsDivList.forEach((item) => depsList.appendChild(item))
         }
-    };
+    }
 
     eventSource.onerror = () => {
         eventSource.close()
     }
+}
+
+export function handleActiveDependency(clicked: HTMLButtonElement, depsList: HTMLDivElement) {
+    const children = Array.from(depsList.children)
+    for (let i=0; i<children.length; i++) {
+        children[i].classList.remove("active")
+    }
+    clicked.classList.add("active")
+    console.log("Clicked:", clicked.id)
 }

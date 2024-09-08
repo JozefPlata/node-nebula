@@ -1,5 +1,12 @@
 {{ block "deps-template" . }}
     <div>
-        <div id="deps-list"></div>
+        <div id="progress-container" class="inactive">
+            <div id="progress-background">
+                <div id="progress-bar" class="inactive"></div>
+            </div>
+        </div>
+        <div>
+            <div id="deps-list"></div>
+        </div>
     </div>
 {{ end }}
