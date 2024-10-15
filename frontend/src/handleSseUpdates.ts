@@ -51,5 +51,12 @@ export function handleActiveDependency(clicked: HTMLButtonElement, depsList: HTM
         children[i].classList.remove("active")
     }
     clicked.classList.add("active")
-    console.log("Clicked:", clicked.id)
+    const mesh = AppManager.Instance.scene.getMeshById(clicked.id)
+    // @ts-ignore
+    AppManager.Instance.camera.setTarget(mesh)
+    // @ts-ignore
+    AppManager.Instance.camera.behaviors[0].zoomOnMesh(mesh)
+    // AppManager.Instance.camera.behaviors[0].radiusScale = 5
+
+    console.log("FOUND:", mesh)
 }

@@ -1,4 +1,5 @@
-import {ResolvedPackage} from "./types.ts";
+import {ResolvedPackage} from "./types.ts"
+
 
 export class ResolvedPackageData {
     private _data: ResolvedPackage

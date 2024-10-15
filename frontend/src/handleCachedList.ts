@@ -24,6 +24,7 @@ export function createLibraryListItem(lib: { name: string; version: string }, ul
     li.addEventListener("click", () => {
         AppManager.Instance.selected = lib
         handleActiveLibrary(li, ul)
+        AppManager.Instance.createStuff().then().finally()
     })
 
     // Library name

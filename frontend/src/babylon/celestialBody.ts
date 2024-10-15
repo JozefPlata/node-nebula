@@ -1,4 +1,4 @@
-import {Ellipse, Rectangle, TextBlock} from "@babylonjs/gui";
+import {Ellipse, Rectangle, TextBlock} from "@babylonjs/gui"
 import {
     Color3,
     Color4,
@@ -19,11 +19,12 @@ import {
     TmpColors,
     TransformNode,
     Vector3
-} from "@babylonjs/core";
-import {AppManager} from "./appManager.ts";
-import {fitRange} from "./helpers.ts";
-import {CelestialBodyType, ResolvedPackage} from "./types.ts";
-import {ResolvedPackageData} from "./packageData.ts";
+} from "@babylonjs/core"
+import {AppManager} from "./appManager.ts"
+import {fitRange} from "./helpers.ts"
+import {CelestialBodyType, ResolvedPackage} from "./types.ts"
+import {ResolvedPackageData} from "./packageData.ts"
+
 
 class CelestialBodyDescription {
     private readonly _rect: Rectangle
@@ -39,7 +40,7 @@ class CelestialBodyDescription {
 
     private _createFor(body: CelestialBody): Observer<Scene> {
         this._rect.cornerRadius = 24
-        this._rect.name = `${body.name}_rect`
+        this._rect.name = `${body.code}_rect`
         this._rect.color = "gray"
         this._rect.thickness = 1
         this._rect.alpha = 0.6
@@ -47,14 +48,14 @@ class CelestialBodyDescription {
         AppManager.Instance.uiTexture.addControl(this._rect)
         this._rect.linkWithMesh(body.mesh)
 
-        this._label.name = `${body.name}_label`
+        this._label.name = `${body.code}_label`
         this._label.color = "white"
-        this._label.text = body.name
+        this._label.text = body.code
         this._label.fontFamily = "Ubuntu"
         this._label.fontWeight = "bold"
         this._rect.addControl(this._label)
 
-        this._outline.name = `${body.name}_outline`
+        this._outline.name = `${body.code}_outline`
         this._outline.color = "gray"
         this._outline.thickness = 1
         AppManager.Instance.uiTexture.addControl(this._outline)
@@ -64,7 +65,7 @@ class CelestialBodyDescription {
             const dist = Vector3.Distance(AppManager.Instance.camera.position, body.mesh.absolutePosition)
             this._rect.zIndex = -dist
             const value = fitRange(dist, 0, 1300, 1.5, 0.2)
-            this._rect.width = body.type === 0 ? `${body.name.length * 12 * value}px` : `${body.name.length * 6 * value}px`
+            this._rect.width = body.type === 0 ? `${body.code.length * 12 * value}px` : `${body.code.length * 6 * value}px`
             this._rect.height = body.type === 0 ? `${40 * value}px` : `${20 * value}px`
             this._label.fontSize = body.type === 0 ? `${15 * value}px` : `${7.5 * value}px`
             const size = `${1.5 * (1 / dist) * body.diameter * AppManager.Instance.engine.getRenderHeight()}px`
@@ -113,7 +114,7 @@ class CelestialBodyTrajectory {
 
         // Draw the line
         const line = CreateGreasedLine(
-            `${body.name}_line`,
+            `${body.code}_line`,
             {points: points},
             {
                 useColors: true,
@@ -140,7 +141,9 @@ class CelestialBodyTrajectory {
 export class CelestialBody extends ResolvedPackageData {
     private readonly _type: CelestialBodyType
     private readonly _initEllipseRadius: number
+    private readonly _code: string
     private readonly _name: string
+    // private readonly _id: string
     private readonly _mesh: Mesh
     private readonly _diameter: number
     private readonly _speed: number
@@ -159,14 +162,17 @@ export class CelestialBody extends ResolvedPackageData {
 
         const initDiameter = this.dependenciesCount()
         this._diameter = initDiameter + fitRange(Math.random(), 0, 1, 0.1, 0.9)
-        this._name = `${pkg.name}, ${pkg.version}`
-        this._mesh = MeshBuilder.CreateSphere(this._name, {
+        this._code = `${pkg.name}, ${pkg.version}`
+        this._name = pkg.name
+        // this._id = centralBody !== null ? `${centralBody?.code}__${pkg.name}` : pkg.name
+        this._mesh = MeshBuilder.CreateSphere(this._code, {
             diameter: this._diameter,
             segments: 32
         }, AppManager.Instance.scene)
+        this._mesh.id = centralBody !== null ? `${centralBody?.name}__${pkg.name}` : pkg.name
         
         // Material
-        this._material = new StandardMaterial(this._name, AppManager.Instance.scene)
+        this._material = new StandardMaterial(this._code, AppManager.Instance.scene)
         this._material.specularColor = Color3.Black()
         this._material.specularPower = 0
         if (this._type > 0) {
@@ -186,7 +192,7 @@ export class CelestialBody extends ResolvedPackageData {
 
         if (centralBody !== null) {
             // Parent Node
-            this._masterNode = new TransformNode(`${this.name}_p`, AppManager.Instance.scene)
+            this._masterNode = new TransformNode(`${this.code}_p`, AppManager.Instance.scene)
             this._mesh.position.x = this.ellipseRadius
 
             // Trajectory
@@ -210,13 +216,19 @@ export class CelestialBody extends ResolvedPackageData {
         return this._mesh.absolutePosition
     }
 
-    get name(): string {
-        return this._name
+    get code(): string {
+        return this._code
     }
 
     get mesh(): Mesh {
         return this._mesh
     }
+
+    get name(): string { return this._name }
+
+    // get id(): string {
+    //     return this._id
+    // }
 
     get material() {
         return this._material

@@ -1,8 +1,11 @@
-import {CelestialBodyType, ResolvedPackage} from "./types.ts";
-import {AppManager} from "./appManager.ts";
-import {CelestialBody} from "./celestialBody.ts";
+import {CelestialBodyType, ResolvedPackage} from "./types.ts"
+import {AppManager} from "./appManager.ts"
+import {CelestialBody} from "./celestialBody.ts"
+
 
 export class PlanetarySystem {
+    private readonly _diameter: number;
+
     constructor(centralBody: CelestialBody, data: ResolvedPackage) {
         let distance = centralBody.diameter + 1
         for (let [_, dep] of Object.entries(data.resolvedDependencies)) {
@@ -12,6 +15,9 @@ export class PlanetarySystem {
                 planet.masterNode!.rotation.y += planet.speed
             })
         }
+        this._diameter = distance
     }
+
+    get diameter() { return this._diameter }
 }
 

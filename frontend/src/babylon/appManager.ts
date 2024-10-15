@@ -1,6 +1,9 @@
 import {ArcRotateCamera, Engine, Scene} from "@babylonjs/core"
 import {AdvancedDynamicTexture} from "@babylonjs/gui"
 import {CelestialBody} from "./celestialBody.ts"
+import {CelestialBodyType} from "./types.ts"
+import {PlanetarySystem} from "./planetarySystem.ts"
+import {Db} from "../dbManager.ts"
 
 
 export class AppManager {
@@ -12,7 +15,6 @@ export class AppManager {
     private _selected: { name: string, version: string } = { name: "", version: "" }
     depsDivList: HTMLButtonElement[] = []
     depsProgress: { max: number; value: number } = { max: 1, value: 0 }
-
     // @ts-ignore
     cache: CelestialBody[] = []
 
@@ -42,4 +44,14 @@ export class AppManager {
     }
 
     get selected() { return this._selected }
+
+    async createStuff() {
+        this.cache.forEach(c => c.dispose())
+        this.cache = []
+        const data = await Db.Instance.getLibrary(this._selected.name, this._selected.version)
+        if (!data) return null
+        const sun = new CelestialBody(null, data, CelestialBodyType.STAR, 0)
+        const system = new PlanetarySystem(sun, data)
+        this._camera.radius = 1.5 * system.diameter
+    }
 }
